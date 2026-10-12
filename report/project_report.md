@@ -1,264 +1,145 @@
-\# Distributed Dataset Statistics using MPI
+# Distributed Dataset Statistics using MPI
 
-
-
-\## 1. Problem Definition
-
-
+## 1. Problem Definition
 
 The objective of this project is to calculate basic statistical properties of a dataset using sequential and parallel computing. The required statistics are sum, average, minimum, and maximum.
 
-
-
 The parallel implementation uses the Message Passing Interface (MPI) to divide the work among multiple processes and combine their local results.
 
+## 2. Sequential Algorithm
 
+1. Initialize the sum to zero.
+2. Initialize the minimum and maximum.
+3. Generate each dataset value.
+4. Update the sum, minimum, and maximum.
+5. Compute the average as sum divided by dataset size.
+6. Display the results and execution time.
 
-\## 2. Sequential Algorithm
+The time complexity is **O(N)**, where N is the dataset size.
 
-
-
-1\. Initialize the sum to zero.
-
-2\. Initialize the minimum and maximum.
-
-3\. Generate each dataset value.
-
-4\. Update the sum, minimum, and maximum.
-
-5\. Compute the average as sum divided by dataset size.
-
-6\. Display the results and execution time.
-
-
-
-The time complexity is O(N), where N is the dataset size.
-
-
-
-\## 3. Parallel Design
-
-
+## 3. Parallel Design
 
 The MPI implementation distributes dataset indices among processes. Each process calculates local statistics for its assigned range.
 
-
-
 The implementation uses:
 
-\- `MPI\_Init` to initialize MPI.
-
-\- `MPI\_Comm\_rank` to obtain the process rank.
-
-\- `MPI\_Comm\_size` to obtain the total number of processes.
-
-\- `MPI\_Reduce` with sum, minimum, and maximum operations to combine local results.
-
-\- `MPI\_Wtime` to measure elapsed time.
-
-
+- `MPI_Init` to initialize MPI.
+- `MPI_Comm_rank` to obtain the process rank.
+- `MPI_Comm_size` to obtain the total number of processes.
+- `MPI_Reduce` with sum, minimum, and maximum operations to combine local results.
+- `MPI_Wtime` to measure elapsed time.
 
 Process 0 displays the final statistics.
 
-
-
 The dataset values are generated deterministically using the formula:
 
-
-
-`value = (index % 1000) + 1`
-
-
+```c
+value = (index % 1000) + 1;
+```
 
 Thus, the values repeat from 1 through 1000. This avoids storing a large dataset in memory.
 
-
-
-\## 4. Experimental Setup
-
-
+## 4. Experimental Setup
 
 The experiments were conducted on a Windows computer using:
 
-\- C compiler and MPI compiler wrapper
+- C compiler and MPI compiler wrapper
+- Microsoft MPI runtime
+- Python and Matplotlib for graphs
 
-\- Microsoft MPI runtime
+### Dataset Sizes
 
-\- Python and Matplotlib for graphs
+| Dataset Size | Description |
+| ---: | --- |
+| 100,000 | Small dataset |
+| 1,000,000 | Medium dataset |
+| 5,000,000 | Large dataset |
 
+### MPI Process Counts
 
-
-Dataset sizes tested:
-
-\- 100,000 values
-
-\- 1,000,000 values
-
-\- 5,000,000 values
-
-
-
-MPI process counts tested:
-
-\- 1 process
-
-\- 2 processes
-
-\- 4 processes
-
-
+| Number of Processes | Configuration |
+| ---: | --- |
+| 1 | Single-process execution |
+| 2 | Two-process execution |
+| 4 | Four-process execution |
 
 For the 1-million and 5-million datasets, five trials were recorded for each process count. For the 100,000 dataset, one trial was recorded for each process count.
 
+## 5. Experimental Results
 
+### Mean MPI Execution Time
 
-\## 5. Experimental Results
+| Dataset Size | 1 Process (seconds) | 2 Processes (seconds) | 4 Processes (seconds) |
+| ---: | ---: | ---: | ---: |
+| 100,000 | 0.000621 | 0.000775 | 0.001219 |
+| 1,000,000 | 0.004306 | 0.001759 | 0.001261 |
+| 5,000,000 | 0.015383 | 0.007572 | 0.004244 |
 
+### Correctness Validation
 
-
-\### Mean MPI execution time
-
-
-
-| Dataset size | Processes | Mean time (seconds) |
-
-|---:|---:|---:|
-
-| 100,000 | 1 | 0.000621 |
-
-| 100,000 | 2 | 0.000775 |
-
-| 100,000 | 4 | 0.001219 |
-
-| 1,000,000 | 1 | 0.004306 |
-
-| 1,000,000 | 2 | 0.001759 |
-
-| 1,000,000 | 4 | 0.001261 |
-
-| 5,000,000 | 1 | 0.015383 |
-
-| 5,000,000 | 2 | 0.007572 |
-
-| 5,000,000 | 4 | 0.004244 |
-
-
-
-\### Correctness validation
-
-
-
-The output was checked against the expected statistics:
-
-
-
-| Dataset size | Sum | Average | Minimum | Maximum |
-
-|---:|---:|---:|---:|---:|
-
+| Dataset Size | Sum | Average | Minimum | Maximum |
+| ---: | ---: | ---: | ---: | ---: |
 | 100,000 | 50,050,000 | 500.500 | 1 | 1000 |
-
 | 1,000,000 | 500,500,000 | 500.500 | 1 | 1000 |
-
 | 5,000,000 | 2,502,500,000 | 500.500 | 1 | 1000 |
-
-
 
 All recorded MPI runs produced the expected statistics.
 
-
-
-\## 6. Performance Analysis
-
-
+## 6. Performance Analysis
 
 For the 1-million dataset, the mean runtime was approximately 0.004306 seconds with one process, 0.001759 seconds with two processes, and 0.001261 seconds with four processes.
 
-
-
 For the 5-million dataset, the mean runtime was approximately 0.015383 seconds with one process, 0.007572 seconds with two processes, and 0.004244 seconds with four processes.
-
-
 
 The larger dataset showed lower mean execution time with more MPI processes. The 100,000-value workload did not benefit from additional processes in the recorded trials, illustrating that process startup and communication overhead can outweigh computational gains for small workloads.
 
-
-
 The timings are very short and show variability. The 100,000-value results have only one trial per process count, so they should not be treated as reliable averages. Further repeated trials would improve confidence in the performance comparison.
 
-
-
-\## 7. Speedup and Parallel Efficiency
-
-
+## 7. Speedup and Parallel Efficiency
 
 Speedup is calculated as:
 
-
-
-`Speedup = Mean time with 1 process / Mean time with p processes`
-
-
+```text
+Speedup = Mean time with 1 process / Mean time with p processes
+```
 
 Parallel efficiency is calculated as:
 
+```text
+Efficiency = (Speedup / p) * 100%
+```
 
+### Speedup Results
 
-`Efficiency = Speedup / p × 100%`
+| Dataset Size | Speedup with 2 Processes | Speedup with 4 Processes |
+| ---: | ---: | ---: |
+| 1,000,000 | 2.45x | 3.42x |
+| 5,000,000 | 2.03x | 3.62x |
 
+For the 1-million dataset, the observed speedup was approximately 2.45x with two processes and 3.42x with four processes.
 
-
-For the 1-million dataset, the observed speedup was approximately 2.45× with two processes and 3.42× with four processes.
-
-
-
-For the 5-million dataset, the observed speedup was approximately 2.03× with two processes and 3.62× with four processes.
-
-
+For the 5-million dataset, the observed speedup was approximately 2.03x with two processes and 3.62x with four processes.
 
 These values are preliminary because of timing variability. Efficiency can exceed 100% when noisy measurements make the parallel runtime appear disproportionately low; this is not proof of superlinear scalability.
 
-
-
-\## 8. Graphs
-
-
+## 8. Graphs
 
 The following graphs were generated from the recorded timings:
 
-\- `graphs/execution\_time.png`
+- `graphs/execution_time.png`
+- `graphs/speedup.png`
+- `graphs/efficiency.png`
 
-\- `graphs/speedup.png`
-
-\- `graphs/efficiency.png`
-
-
-
-\## 9. Conclusion
-
-
+## 9. Conclusion
 
 The project demonstrates the use of MPI to distribute statistical calculations and combine partial results. The implementation correctly computes sum, average, minimum, and maximum for the tested dataset sizes.
 
-
-
 The measured experiments show benefits from using multiple MPI processes for the larger datasets. For small workloads, MPI overhead can reduce or eliminate those benefits. More repetitions and consistent timing methodology would improve the reliability of the performance evaluation.
 
+## 10. Future Improvements
 
-
-\## 10. Future Improvements
-
-
-
-\- Repeat every configuration several times.
-
-\- Align the sequential and parallel timing methodology.
-
-\- Test additional dataset sizes and process counts.
-
-\- Compare sequential and parallel execution under the same experimental conditions.
-
-\- Automate collection of runtime measurements.
-
-
-
+- Repeat every configuration several times.
+- Align the sequential and parallel timing methodology.
+- Test additional dataset sizes and process counts.
+- Compare sequential and parallel execution under the same experimental conditions.
+- Automate collection of runtime measurements.
